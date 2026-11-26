@@ -17,7 +17,7 @@ import {
   isServiceProvider,
   type ProfileState,
 } from "../types/app";
-
+import AdminUsers from "./AdminUsers";
 import HomePage from "./HomePage";
 import DirectoryPage from "./DirectoryPage";
 import ServiceDetailPage from "./ServiceDetailPage";
@@ -27,6 +27,7 @@ import JobsPage from "./JobsPage";
 import MessagesPage from "./MessagesPage";
 import ProfilePage from "./ProfilePage";
 import AuthPage from "./AuthPage";
+import AdminCategories from "./AdminCategories";
 
 class PageErrorBoundary extends Component<
   { children: ReactNode },
@@ -102,7 +103,7 @@ export default function App() {
       const me = await profileService.getMe();
       if (me) {
         setProfile({
-          name: me.displayName || "عضو بناءتك",
+          name: me.displayName || "عضو Build Link",
           type: accountTypeFromId[me.accountType] || "طالب خدمة",
           bio: me.bio,
           location: me.location,
@@ -120,7 +121,7 @@ export default function App() {
     }
   };
 
-  const loadInitialData = async () => {
+  const reloadTaxonomy = async () => {
     try {
       const tree = await taxonomyService.getTree();
       if (tree && tree.length > 0) {
@@ -133,6 +134,10 @@ export default function App() {
       console.error("Failed to load taxonomy:", e);
       notify(`تعذر الاتصال بالسيرفر لتحميل الأقسام: ${e.message || "تأكد من تشغيل .NET API"}`);
     }
+  };
+
+  const loadInitialData = async () => {
+    await reloadTaxonomy();
 
     try {
       const dbPosts = await feedService.getPosts();
@@ -269,6 +274,17 @@ export default function App() {
     }
   };
 
+  const handleDeletePost = async (id: string | number) => {
+    if (!confirm("هل أنت متأكد من حذف هذا المنشور؟")) return;
+    try {
+      await (feedService as any).deletePost(id);
+      setPosts((prev) => prev.filter((p) => p.id !== id));
+      notify("تم حذف المنشور بنجاح");
+    } catch (e: any) {
+      notify(e?.message || "ليس لديك صلاحية لحذف هذا المنشور");
+    }
+  };
+
   const addRfq = async (x: {
     title: string;
     category: string;
@@ -323,6 +339,7 @@ export default function App() {
                   onSetup={() => setSetup(true)}
                   onPost={() => setPostModal(true)}
                   onLike={handleLikePost}
+                  onDelete={handleDeletePost}
                 />
               }
             />
@@ -369,6 +386,11 @@ export default function App() {
             />
             <Route path="/login" element={<AuthPage register={false} onSuccess={loadInitialData} />} />
             <Route path="/register" element={<AuthPage register onSuccess={loadInitialData} />} />
+            <Route
+              path="/admin/categories"
+              element={<AdminCategories onChanged={reloadTaxonomy} />}
+            />
+            <Route path="/admin/users" element={<AdminUsers />} />
             <Route
               path="*"
               element={

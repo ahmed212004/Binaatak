@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { HardHat, Camera } from "lucide-react";
+import { HardHat, Camera, Eye, EyeOff } from "lucide-react";
 import { Field } from "../components/Shared";
 import {
   isServiceProvider,
@@ -22,6 +22,7 @@ export default function AuthPage({
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -76,7 +77,7 @@ export default function AuthPage({
             <HardHat />
           </span>
           <span>
-            <b>بناءتك</b>
+            <b>Build Link</b>
             <small>سوق البناء والهندسة</small>
           </span>
         </div>
@@ -206,14 +207,24 @@ export default function AuthPage({
         </Field>
 
         <Field label="كلمة المرور">
-          <input
-            className="field"
-            type="password"
-            required
-            minLength={6}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className="relative">
+            <input
+              className="field pl-10"
+              type={showPassword ? "text" : "password"}
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
         </Field>
 
         <button className="btn btn-amber w-full mt-5" type="submit" disabled={loading}>
